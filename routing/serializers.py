@@ -57,7 +57,7 @@ class RouteSerializer(serializers.ModelSerializer):
         model = Route
         fields = [
             'id', 'user', 'origin', 'destination', 'waypoints', 'segments',
-            'total_distance', 'estimated_duration', 'overall_risk_score',
+            'path_data', 'total_distance', 'estimated_duration', 'overall_risk_score',
             'route_type', 'is_active', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'user', 'created_at', 'updated_at']

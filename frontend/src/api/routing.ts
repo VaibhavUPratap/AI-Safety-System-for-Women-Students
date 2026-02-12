@@ -38,6 +38,7 @@ export interface Route {
   destination: Location;
   waypoints: Location[];
   segments: RouteSegment[];
+  path_data?: { latitude: number; longitude: number; risk_score: number }[];
   total_distance: number;
   estimated_duration: number;
   overall_risk_score: number;

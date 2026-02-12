@@ -726,33 +726,34 @@ class RoutePredictionService:
             saved_locations.append(loc)
             
         # Create Segments
-        for i in range(len(saved_locations) - 1):
-            start_loc = saved_locations[i]
-            end_loc = saved_locations[i+1]
+        # OPTIMIZATION: Instead of creating hundreds of RouteSegment rows, 
+        # we store the path data directly in the JSON field.
+        
+        saved_path_data = []
+        total_dist_calc = 0.0
+        
+        for i in range(len(path_data)):
+            p = path_data[i]
             
-            # dist
-            # simple euclidian approximation for speed or geodesic
-            d_lat = end_loc.latitude - start_loc.latitude
-            d_lng = end_loc.longitude - start_loc.longitude
-            dist_km = np.sqrt(d_lat**2 + d_lng**2) * 111.0
-            total_dist_calc += dist_km
+            # Add to path data list
+            saved_path_data.append({
+                'latitude': p['latitude'],
+                'longitude': p['longitude'],
+                'risk_score': p.get('risk_score', 0.0)
+            })
             
-            dur_mins = (dist_km / 30.0) * 60.0 # 30km/h avg
-            
-            risk = path_data[i]['risk_score'] # Risk of edge starting at i
-            
-            RouteSegment.objects.create(
-                route=route,
-                start_location=start_loc,
-                end_location=end_loc,
-                sequence_order=i,
-                segment_distance=dist_km,
-                segment_duration=dur_mins,
-                segment_risk_score=risk
-            )
-            
+            # Calculate distance to next point for total distance
+            if i < len(path_data) - 1:
+                next_p = path_data[i+1]
+                d_lat = next_p['latitude'] - p['latitude']
+                d_lng = next_p['longitude'] - p['longitude']
+                # Approx distance in km
+                dist_km = np.sqrt(d_lat**2 + d_lng**2) * 111.0
+                total_dist_calc += dist_km
+
+        route.path_data = saved_path_data
         route.total_distance = total_dist_calc
-        route.estimated_duration = (total_dist_calc / 30.0) * 60.0
+        route.estimated_duration = (total_dist_calc / 30.0) * 60.0 # 30km/h avg
         route.save()
         
         computation_time = time.time() - start_time

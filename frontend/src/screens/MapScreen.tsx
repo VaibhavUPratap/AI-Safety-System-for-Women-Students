@@ -83,22 +83,32 @@ export function MapScreen() {
       const { route } = response;
 
       // 3. Prepare a simple polyline from origin + segment end locations
+      // 3. Prepare polyline points
       const points: { latitude: number; longitude: number }[] = [];
-      if (route.origin) {
-        points.push({
-          latitude: route.origin.latitude,
-          longitude: route.origin.longitude,
+
+      if (route.path_data && route.path_data.length > 0) {
+        // FAST PATH: Use pre-computed path data
+        route.path_data.forEach(p => {
+          points.push({ latitude: p.latitude, longitude: p.longitude });
         });
-      }
-      if (Array.isArray(route.segments)) {
-        route.segments.forEach((segment) => {
-          if (segment.end_location) {
-            points.push({
-              latitude: segment.end_location.latitude,
-              longitude: segment.end_location.longitude,
-            });
-          }
-        });
+      } else {
+        // FALLBACK: Legacy segment logic
+        if (route.origin) {
+          points.push({
+            latitude: route.origin.latitude,
+            longitude: route.origin.longitude,
+          });
+        }
+        if (Array.isArray(route.segments)) {
+          route.segments.forEach((segment) => {
+            if (segment.end_location) {
+              points.push({
+                latitude: segment.end_location.latitude,
+                longitude: segment.end_location.longitude,
+              });
+            }
+          });
+        }
       }
 
       if (points.length) {

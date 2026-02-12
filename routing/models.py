@@ -88,6 +88,8 @@ class Route(models.Model):
         ],
         default='safest'
     )
+    # Optimization: Store path as JSON to avoid thousands of RouteSegment rows
+    path_data = models.JSONField(default=list, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
